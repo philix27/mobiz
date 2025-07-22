@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS" /* Specify what module code is generated. */,
+    // "moduleResolution": "node",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  },
+  "include": ["src/**/*"],
+  "paths": {
+    "@/lib": ["./lib", "/lib", "./src/lib"]
+  },
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
