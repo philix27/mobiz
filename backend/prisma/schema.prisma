@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/lib/gen/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  firstname        String?
+  lastname         String?
+  middlename       String?
+  email            String?            @unique
+  password         String?
+  transaction_pin  String?
+  created_at       DateTime?          @default(now())
+  updated_at       DateTime?          @updatedAt
+  bvn              String?
+  bvn_status       CredentialsStatus? @default(NONE)
+  nin              String?
+  nin_status       CredentialsStatus? @default(NONE)
+  dob              String?
+  dob_status       CredentialsStatus? @default(NONE)
+  home_address     String?
+  street_address   String?
+  state            String?
+  phone            String?
+  googleId         String?
+  proof_of_address String?
+  phone_verified   Boolean?           @default(false)
+  bank_accounts    BankAccount[]
+  projects         Project[]
+}
+
+enum CredentialsStatus {
+  REVIEW
+  VALID
+  FAILED
+  NONE
+}
+
+model BankAccount {
+  id           Int       @id @default(autoincrement())
+  account_name String
+  account_no   String
+  soft_delete  Boolean?  @default(false)
+  bank_name    String
+  nuban_id     String?
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
+  user_id      Int
+  user         User?     @relation(fields: [user_id], references: [id])
+}
+
+model Project {
+  id             Int            @id @default(autoincrement())
+  name           String
+  description    String?
+  created_at     DateTime?      @default(now())
+  updated_at     DateTime?      @updatedAt
+  user_id        Int
+  user           User?          @relation(fields: [user_id], references: [id])
+  employees      Employee[]
+  employee_roles EmployeeRole[]
+}
+
+model Employee {
+  id         Int           @id @default(autoincrement())
+  firstname  String?
+  lastname   String?
+  middlename String?
+  email      String?
+  password   String?
+  created_at DateTime?     @default(now())
+  updated_at DateTime?     @updatedAt
+  role_id    Int
+  role       EmployeeRole? @relation(fields: [role_id], references: [id])
+  project_id Int
+  project    Project?      @relation(fields: [project_id], references: [id])
+}
+
+model EmployeeRole {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  created_at  DateTime?  @default(now())
+  updated_at  DateTime?  @updatedAt
+  employees   Employee[]
+  project_id  Int
+  project     Project?   @relation(fields: [project_id], references: [id])
+}
+    

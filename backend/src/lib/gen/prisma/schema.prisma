@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/lib/gen/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    Int                @id @default(autoincrement())
+  firstname             String?
+  lastname              String?
+  middlename            String?
+  email                 String?            @unique
+  password              String?
+  transaction_pin       String?
+  telegram_id           String?            @unique
+  // minipay_wallet    String?
+  // minipay           Boolean?           @default(false)
+  role                  UserRole?          @default(Regular)
+  country_code          CountryCode?
+  created_at            DateTime?          @default(now())
+  updated_at            DateTime?          @updatedAt
+  bvn                   String?
+  bvn_status            CredentialsStatus? @default(NONE)
+  nin                   String?
+  nin_status            CredentialsStatus? @default(NONE)
+  dob                   String?
+  dob_status            CredentialsStatus? @default(NONE)
+  home_address          String?
+  street_address        String?
+  state                 String?
+  phone                 String?
+  googleId              String?
+  proof_of_address      String?
+  phone_verified        Boolean?           @default(false)
+  crypto_wallets        CryptoWallets[]
+  bank_accounts         BankAccount[]
+  //* Vendor
+  merchant_success_rate Int?
+  merchant_trade_count  Int?               @default(0)
+  merchant_nickname     String?
+  merchant_status       MerchantStatus?    @default(Offline)
+  adverts               Adverts[]
+  orders                Orders[]
+  transactions          Transactions[]
+  // orders_buy        OrdersBuy[]
+}
+
+enum MerchantStatus {
+  Online
+  Offline
+  Wait
+}
+
+enum UserRole {
+  Regular
+  P2pMerchant
+  CustomeSupport
+}
+
+model CryptoWallets {
+  id         Int       @id @default(autoincrement())
+  address    String    @unique
+  wallet_id  String?
+  chainType  ChainType
+  minipay    Boolean?  @default(false)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  user_id    Int?
+  user       User?     @relation(fields: [user_id], references: [id])
+}
+
+enum ChainType {
+  Ethereum
+  Solana
+  Cosmos
+}
+
+enum CredentialsStatus {
+  REVIEW
+  VALID
+  FAILED
+  NONE
+}
+
+model BankAccount {
+  id           Int       @id @default(autoincrement())
+  account_name String
+  account_no   String
+  soft_delete  Boolean?  @default(false)
+  bank_name    String
+  nuban_id     String?
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
+  user_id      Int
+  user         User?     @relation(fields: [user_id], references: [id])
+  advert       Adverts[]
+  Orders       Orders[]
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
+
+enum CountryCode {
+  NG
+  GH
+  KE
+  MW
+  RW
+  TZ
+  UG
+  ZA
+}
+
+// Buy and sell is always dependent on the crypto value
+model Adverts {
+  id                  Int           @id @default(autoincrement())
+  rateFloat           Float?
+  rateFixed           Float?
+  isFloatRate         Boolean       @default(true)
+  limitUpper          Float
+  limitLower          Float
+  fiatAmountPerCrypto Int
+  tradeType           TradeType
+  currency_crypto     String
+  currency_fiat       CountryCode
+  instructions        String
+  wallet_address      String
+  status              AdvertStatus? @default(OPEN)
+  duration            String
+  created_at          DateTime?     @default(now())
+  updated_at          DateTime?     @updatedAt
+  bank_accounts       BankAccount[]
+  merchant_id         Int
+  merchant            User?         @relation(fields: [merchant_id], references: [id])
+}
+
+enum AdvertStatus {
+  OPEN
+  CLOSE
+}
+
+model Orders {
+  id                                    Int           @id @default(autoincrement())
+  amount_fiat                           Float
+  amount_crypto                         Float
+  wallet_customer                       String
+  wallet_merchant                       String
+  estimated_duration                    String
+  mode                                  OrderMode?
+  currency_crypto                       String
+  currency_fiat                         CountryCode?
+  trade_type                            TradeType
+  status                                OrderStatus   @default(PENDING)
+  action_user                           OrderActions?
+  action_merchant                       OrderActions?
+  // ! fiat
+  txn_hash                              String?
+  sell_txn_hash_customer_lock_crypto    String?
+  sell_txn_hash_customer_release_crypto String?
+  // ! fiat
+  sell_time2_customer_lock_crypto       DateTime?
+  sell_time1_customer_request           DateTime?
+  sell_time3_merchant_send_fiat         DateTime?
+  sell_time4_customer_release_crypto    DateTime?
+  // ! open
+  buy_time1_customer_request            DateTime?
+  buy_time2_merchant_lock_crypto        DateTime?
+  buy_time3_customer_send_fiat          DateTime?
+  buy_time4_merchant_release_crypto     DateTime?
+  buy_txn_hash_merchant_lock_crypto     String?
+  buy_txn_hash_merchant_release_crypto  String?
+  // ! open
+  created_at                            DateTime?     @default(now())
+  updated_at                            DateTime?     @updatedAt
+  bank_id                               Int
+  bank                                  BankAccount?  @relation(fields: [bank_id], references: [id])
+  customer_id                           Int
+  customer                              User?         @relation(fields: [customer_id], references: [id])
+  merchant_id                           Int
+}
+
+enum OrderMode {
+  MARKET
+  EXPRESS
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCEL
+  APPEAL
+}
+
+enum OrderActions {
+  LockCrypto
+  FaitSent
+  FaitReceived
+  ReleaseCrypto
+  Appeal
+  Cancel
+}
+
+enum CurrencyType {
+  FIAT
+  CRYPTO
+}
+
+model ExchangeRates {
+  id               Int       @id @default(autoincrement())
+  rates            String?
+  exchangeratesapi String?
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+}
+
+enum AccessTokenPlatform {
+  RELOADLY
+}
+
+model AccessTokens {
+  id            Int                 @id @default(autoincrement())
+  token         String
+  platform      AccessTokenPlatform
+  purpose       String?
+  response_data String?
+  created_at    DateTime?           @default(now())
+  updated_at    DateTime?           @updatedAt
+}
+
+enum TransactionCategory {
+  AIRTIME
+  DATA_BUNDLE
+  GIFT_CARD
+  EXPRESS_EXCHANGE
+  P2P_EXCHANGE
+  OFF_RAMPING
+  ON_RAMPING
+  BETTING_WALLET
+  ELECTRICITY_BILL
+  TV_BILL
+  WATER_BILL
+  INTERNET_BILL
+}
+
+enum TransactionsMode {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  COMPLETED
+  PENDING
+}
+
+model Transactions {
+  id               Int                 @id @default(autoincrement())
+  amount           Float
+  transaction_hash String?
+  note             String?
+  fiat_currency    CountryCode?
+  crypto_currency  String?
+  category         TransactionCategory
+  mode             TransactionsMode
+  status           TransactionStatus
+  created_at       DateTime?           @default(now())
+  updated_at       DateTime?           @updatedAt
+  user_id          Int?
+  user             User?               @relation(fields: [user_id], references: [id])
+}
