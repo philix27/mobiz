@@ -1,8 +1,9 @@
 import React from 'react'
-import LoginScreen from './Screen';
 
 export default function Page() {
   return (
-    <LoginScreen />
+    <div>
+      <h2>Dashboard</h2>
+    </div>
   )
 }
