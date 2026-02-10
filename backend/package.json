@@ -70,7 +70,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "ethers": "^6.13.5",
-    "fastify": "^4.25.2",
+    "fastify": "^5.7.3",
     "firebase-admin": "^13.4.0",
     "graphql": "^16.10.0",
     "graphql-redis-subscriptions": "^2.7.0",
